@@ -31,7 +31,6 @@ images = model.generate(
 
 **Available samplers:**
 - `consistency_fn` - 4-step consistency function sampling (default)
-- `onestep` - 1-step consistency sampling
 
 **Note:** Always uses EMA target model for consistency distillation.
 
