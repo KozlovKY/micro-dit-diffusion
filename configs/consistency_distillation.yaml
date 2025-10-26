@@ -19,7 +19,7 @@ model:
   p_mean: -0.6
   p_std: 1.2
   train_mask_ratio: 0.0
-  pretrained_dit_ckpt: /home/jovyan/Kozlov_KY/micro_diffusion/dit_4_channel_22M_real_only_data.pt
+  pretrained_dit_ckpt: ./dit_4_channel_22M_real_only_data.pt
   # Consistency distillation parameters
   use_consistency_distillation: true
   consistency_noise_scheduler:
@@ -76,8 +76,6 @@ logger:
   progress:
     _target_: composer.loggers.TensorboardLogger
 callbacks:
-  test_callback:
-    _target_: micro_diffusion.models.callbacks.TestCallback
   speed_monitor:
     _target_: composer.callbacks.speed_monitor.SpeedMonitor
     window_size: 3
@@ -109,19 +107,14 @@ callbacks:
     warmup_steps: 0
   dual_model_saver:
     _target_: micro_diffusion.models.callbacks.DualModelSaver
-    save_folder: ./trained_models/${exp_name}/ema_models/
-    save_interval: 50
-  target_model_checkpoint_saver:
-    _target_: micro_diffusion.models.callbacks.TargetModelCheckpointSaver
-    save_folder: ./trained_models/${exp_name}/target_model_checkpoints/
-    save_interval: 50
-    num_checkpoints_to_keep: 3
+    save_folder: ./trained_models/${exp_name}/
+    save_interval: 500
 trainer:
   _target_: composer.Trainer
   device: gpu
   max_duration: 5000ba
-  eval_interval: 300ba
-  save_interval: 500ba
+  eval_interval: 500ba
+  save_interval: 600ba
   save_num_checkpoints_to_keep: 1
   device_train_microbatch_size: 8
   run_name: ${exp_name}
@@ -133,3 +126,4 @@ trainer:
     sharding_strategy: "SHARD_GRAD_OP"
 misc:
   compile: false
+
