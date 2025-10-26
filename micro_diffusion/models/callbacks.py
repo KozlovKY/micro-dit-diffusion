@@ -101,3 +101,32 @@ class EMATargetUpdate(Callback):
                     s_buf = student_bufs.get(b_name, None)
                     if s_buf is not None and t_buf.dtype.is_floating_point and s_buf.shape == t_buf.shape:
                         t_buf.data.mul_(self.ema).add_(s_buf.data.to(t_buf.device), alpha=(1.0 - self.ema))
+
+
+
+class DualModelSaver(Callback):
+    """Saves both student and EMA target models separately."""
+    
+    def __init__(self, save_folder: str, save_interval: int = 1000):
+        self.save_folder = save_folder
+        self.save_interval = save_interval
+        
+    def after_train_batch(self, state: State, logger: Logger) -> None:
+        step = state.timestamp.batch.value
+        
+        if step % self.save_interval != 0:
+            return
+            
+        model = state.model.module if isinstance(state.model, DistributedDataParallel) else state.model
+        
+        target_model = None
+        if hasattr(model, 'consistency_loss_fn') and model.consistency_loss_fn is not None:
+            target_model = getattr(model.consistency_loss_fn, 'target_model', None)
+        
+            
+        os.makedirs(self.save_folder, exist_ok=True)
+        
+        if target_model is not None:
+            target_path = os.path.join(self.save_folder, f"ema_target_model_step_{step}.pt")
+            torch.save(target_model.state_dict(), target_path)
+
